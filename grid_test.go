@@ -1,11 +1,11 @@
-package main
+package grid
 
 import (
 	"reflect"
 	"testing"
 )
 
-func Test_generateGrid(t *testing.T) {
+func Test_generateOptGrid(t *testing.T) {
 	type args struct {
 		gridSize   gridSize
 		mineCoords []coord
@@ -104,8 +104,8 @@ func Test_generateGrid(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := generateGrid(tt.args.gridSize, tt.args.mineCoords); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("generateGrid() = %v, want %v", got, tt.want)
+			if got := generateOptGrid(tt.args.gridSize, tt.args.mineCoords); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("generateOptGrid() = %v, want %v", got, tt.want)
 			}
 		})
 	}

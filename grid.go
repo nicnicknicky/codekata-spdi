@@ -1,4 +1,4 @@
-package main
+package grid
 
 import (
 	"log"
@@ -15,60 +15,71 @@ type coord struct {
 	col int
 }
 
-func generateGrid(gs gridSize, mineCoords []coord) [][]string {
+func generateOptGrid(gs gridSize, mineCoords []coord) [][]string {
 	if gs.rows == 0 || gs.cols == 0 {
 		return [][]string{{""}}
 	}
 
-	results := make([][]string, gs.rows)
-	for i := range results {
+	optGrid := make([][]string, gs.rows)
+	for i := range optGrid {
 		for j := 0; j < gs.cols; j++ {
-			results[i] = append(results[i], ".")
+			optGrid[i] = append(optGrid[i], ".")
 		}
 	}
 
-	populateResults(mineCoords, results)
+	populateResults(mineCoords, optGrid)
 
-	return results
+	return optGrid
 }
 
-func populateResults(mineCoords []coord, results [][]string) {
+func populateResults(mineCoords []coord, optGrid [][]string) {
+	// no mines, done!
 	if len(mineCoords) == 0 {
 		return
 	}
-
+	// iterate through each mine
 	for _, mine := range mineCoords {
-		// Populate mine
-		results[mine.row][mine.col] = "*"
-		// Process
-		populateResultsRow(mine.row-1, mine.col, results)
-		populateResultsRow(mine.row, mine.col, results)
-		populateResultsRow(mine.row+1, mine.col, results)
+		// insert mine in cell
+		optGrid[mine.row][mine.col] = "*"
+		// process by rows
+		// increment cells around mine perimeter ( if permitted )
+		// | +1 | +1 | +1 | prevRow
+		// | +1 |  * | +1 | currentRow
+		// | +1 | +1 | +1 | nextRow
+		processCellsByRow(mine.row-1, mine.col, optGrid)
+		processCellsByRow(mine.row, mine.col, optGrid)
+		processCellsByRow(mine.row+1, mine.col, optGrid)
 	}
 }
 
-func populateResultsRow(row int, mineCoordCol int, results [][]string) {
-	// out of range check
-	if row < 0 || row >= len(results) {
+func processCellsByRow(row int, mineCoordCol int, optGrid [][]string) {
+	// row out of range check
+	if row < 0 || row >= len(optGrid) {
 		return
 	}
-	colSize := len(results[0])
+	// get number of columns from first row which is guaranteed to exist minimally
+	colSize := len(optGrid[0])
+	// start from prevColumn, stop at nextColumn
 	for colOfRow := mineCoordCol - 1; colOfRow <= mineCoordCol+1; colOfRow++ {
+		// column out of range check
 		if colOfRow < 0 || colOfRow >= colSize {
 			continue
 		}
-		results[row][colOfRow] = processCell(results[row][colOfRow])
+		optGrid[row][colOfRow] = processCell(optGrid[row][colOfRow])
 	}
 }
 
 func processCell(cellValue string) string {
 	switch cellValue {
 	case "*":
+		// mine
 		return cellValue
 	case ".":
+		// not been processed before
+		// mine is 1 cell away from me
 		return "1"
 	default:
-		// convert to int, add one, convert to string
+		// mine is 1 cell away from me
 		cellInt, err := strconv.Atoi(cellValue)
 		if err != nil {
 			log.Fatal(err)
